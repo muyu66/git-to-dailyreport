@@ -1,0 +1,17 @@
+aiPrompt: |
+  我是一名程序员，我想用git日志来向领导表达我今天的工作内容，帮我根据git日志生成我今天的工作内容报道。
+  要求你以我的身份第一视角来写这份报告，不要提到是你帮助我写的，也不要透露是根据git日志生成的。
+  不要提到commit之类的git概念
+  我的git日志如下:
+ai:
+  ak: sk-xxxxxxxxxxxx
+  # qwen1.5-72b-chat 完美
+  # qwen1.5-14b-chat 可以
+  # qwen1.5-7b-chat 勉强
+  # qwen-1.8b-chat 智障
+  model: qwen1.5-7b-chat
+  url: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+git:
+  commit: eaa842a6e0176aae3a6616f5ab0b5648df8b66fd
+  path: C:\Web\xxxxxxx\.git
+
