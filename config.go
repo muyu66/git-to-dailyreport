@@ -25,3 +25,11 @@ func getGitCommit() string {
 func getGitPath() string {
 	return viper.GetString("git.path")
 }
+
+func getGitUsername() string {
+	return viper.GetString("git.username")
+}
+
+func getReportMode() string {
+	return viper.GetString("report.mode")
+}

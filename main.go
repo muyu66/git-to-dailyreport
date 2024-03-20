@@ -7,7 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os/exec"
+	"strings"
+	"time"
 )
+
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
 
 func main() {
 	viper.SetConfigName("config")
@@ -24,17 +30,40 @@ func main() {
 	)
 }
 
-func gitShow() string {
-	// 指定要执行的命令和参数
-	cmd := exec.Command("git", "--git-dir="+getGitPath(), "show", getGitCommit())
-
-	// 获取命令的标准输出
-	out, err := cmd.Output()
+func execCmd(name string, arg ...string) string {
+	out, err := exec.Command(name, arg...).Output()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return string(out)
+}
+
+func getEndGitUsername() string {
+	cutset := " \t\r\n"
+	username := strings.Trim(getGitUsername(), cutset)
+	if len(username) == 0 {
+		return execCmd("git", "config", "--global", "user.name")
+	}
+	return username
+}
+
+func gitShow() string {
+	// 获取当前日期-1
+	now := time.Now().AddDate(0, 0, -1).Format(time.DateOnly)
+	afterCmd := "--after=" + now
+
+	committerCmd := "--committer=" + getEndGitUsername()
+
+	dirCmd := "--git-dir=" + getGitPath()
+
+	switch getReportMode() {
+	case "normal":
+		return execCmd("git", dirCmd, "log", "--stat", "-p", afterCmd, committerCmd)
+	case "simple":
+		return execCmd("git", dirCmd, "log", "--stat", afterCmd, committerCmd)
+	default:
+		return execCmd("git", dirCmd, "log", "--stat", afterCmd, committerCmd)
+	}
 }
 
 type ApiReqBody struct {
@@ -63,6 +92,10 @@ type ApiRes struct {
 func aiReq(prompt string, gitLog *string) {
 	gitLogText := *gitLog
 	log.Debug("gitLog length:", len(gitLogText))
+	if len(gitLogText) >= 7800 {
+		gitLogText = gitLogText[:7800]
+	}
+
 	client := resty.New()
 
 	log.Info("请求中......")
@@ -73,7 +106,7 @@ func aiReq(prompt string, gitLog *string) {
 			Model: getAiModel(),
 			Input: ApiReqBodyInput{
 				// TODO: 根据model定义token最大长度
-				Prompt: prompt + gitLogText[:7800],
+				Prompt: prompt + gitLogText,
 			},
 		}).
 		Post(getAiUrl())
