@@ -2,34 +2,34 @@ package main
 
 import "github.com/spf13/viper"
 
-func getAiPrompt() string {
+func getAiPromptConf() string {
 	return viper.GetString("aiPrompt")
 }
 
-func getAiAk() string {
+func getAiAkConf() string {
 	return viper.GetString("ai.ak")
 }
 
-func getAiModel() string {
+func getAiModelConf() string {
 	return viper.GetString("ai.model")
 }
 
-func getAiUrl() string {
+func getAiUrlConf() string {
 	return viper.GetString("ai.url")
 }
 
-func getGitCommit() string {
-	return viper.GetString("git.commit")
-}
-
-func getGitPath() string {
-	return viper.GetString("git.path")
-}
-
-func getGitUsername() string {
+func getGitUsernameConf() string {
 	return viper.GetString("git.username")
 }
 
-func getReportMode() string {
+func getReportModeConf() string {
 	return viper.GetString("report.mode")
+}
+
+func getGitReposConf() []string {
+	return viper.GetStringSlice("git.repo")
+}
+
+func getReportIntervalDayConf() int {
+	return viper.GetInt("report.intervalDay")
 }
