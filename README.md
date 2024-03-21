@@ -17,7 +17,7 @@
 
 Windows
 
-    执行 dailyreport.exe
+    执行 report.exe
 
 * 开通阿里大模型 https://dashscope.aliyun.com
 * 配置文件 需要将`config.sample.yaml`重命名为`config.yaml`，并填写配置
@@ -30,7 +30,49 @@ Windows
 ## 编译 Win64
 
     .\build.bat # 编译脚本
-    .\bin\dailyreport.exe # 开始使用
+    .\bin\report.exe # 开始使用
+
+## 配置文件示例
+
+config.yaml (与report.exe同目录)
+
+```yaml
+aiPrompt: |
+  我是一名程序员，我想用git日志来向领导表达我今天的工作内容，帮我根据git日志生成我今天的工作内容报道。
+  要求你以我的身份第一视角来写这份报告，不要提到是你帮助我写的，也不要透露是根据git日志生成的。
+  不要提到commit之类的git概念
+  需要分点来写
+  我的git日志如下:
+ai:
+  ak: sk-xxxxxxxxxxxxxxxxxxx
+  # qwen1.5-72b-chat 完美
+  # qwen1.5-14b-chat 可以
+  # qwen1.5-7b-chat 勉强
+  # qwen-1.8b-chat 智障
+  # qwen-plus 未知
+  # qwen-turbo 未知
+  # qwen-max-1201 未知
+  # qwen-max-longcontext 未知
+  model: qwen-max-longcontext
+  url: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
+git:
+  # 不会空则以此username为准，防止误领别人的工作
+  # 为空字符串则自动获取
+  username:
+  repo:
+    # [数组]
+    # 自动遍历目录下的所有git仓库
+    # 可以填项目集中的目录: C:\Web
+    # 也可以填具体仓库目录: C:\Web\niubiGame
+    - C:\Web
+report:
+  # 报告模式
+  # [normal 详细叙述] [simple 简单概要]
+  mode: normal
+  # 间隔多少天汇报一次，默认一天报告一次
+  # 1=只含今天，2=今天和昨天
+  intervalDay: 1
+```
 
 ## Roadmap
 
@@ -48,7 +90,7 @@ Windows
 
 ## Contributors
 
-[Thank you](https://github.com/muyu66/git-to-dailyreport/graphs/contributors) for contributing to the Anti-Boss!
+[Thank you](https://github.com/muyu66/git-to-dailyreport/graphs/contributors) for contributing to the Joke-Boss!
 
 ## License
 
