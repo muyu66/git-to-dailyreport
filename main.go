@@ -9,14 +9,18 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
+var reportModeConf string
+
 func init() {
 	log.SetLevel(log.DebugLevel)
-}
 
-func main() {
+	// 初始化配置管理器
+	viper.AutomaticEnv()
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	if err := viper.ReadInConfig(); err != nil {
@@ -25,15 +29,33 @@ func main() {
 		log.Info("Using config file:", viper.ConfigFileUsed())
 	}
 
-	gitLogMap := make(map[string]string)
-	maxLogLen := 0
+	// 初始化全局配置
+	reportModeConf = getReportModeConf()
+}
+
+func main() {
+	var maxLogLen int64 = 0
+	var gitLogMap = sync.Map{}
 	prompt := getAiPromptConf()
 
-	for _, repo := range getGitReposConf() {
-		getGitLogs(repo, &gitLogMap, &maxLogLen)
+	var cmdInfo = CmdInfo{
+		Username: getEndGitUsername(),
+		Date:     time.Now().AddDate(0, 0, -getReportIntervalDayConf()+1).Format(time.DateOnly),
 	}
 
+	var wg sync.WaitGroup
+	for _, repo := range getGitReposConf() {
+		wg.Add(1)
+		go func(repo string) {
+			defer wg.Done()
+			getGitLogs(repo, &gitLogMap, &maxLogLen, cmdInfo)
+		}(repo)
+	}
+	wg.Wait()
+
 	gitLog := makeAiReq(&gitLogMap, maxLogLen, prompt)
+	log.Debug("maxLogLen=", maxLogLen)
+	log.Debug("len(gitLog)=", len(gitLog))
 
 	client := resty.New()
 
@@ -44,19 +66,29 @@ func main() {
 	)
 }
 
-func makeAiReq(gitLogMap *map[string]string, maxLogLen int, prompt string) string {
+func makeAiReq(gitLogMap *sync.Map, maxLogLen int64, prompt string) string {
+	gitLogMapKeyCount := 0
+	gitLogMap.Range(func(_, _ interface{}) bool {
+		gitLogMapKeyCount++
+		return true
+	})
+
 	gitLogLarge := ""
-	gitLogM := *gitLogMap
 	aiModel := getAiModel(getAiModelConf())
 	// 大模型最多支持一次传输TOKEN数量
-	maxInputTokenCount := int(aiModel.MaxInputTokenCount*1000) - len(prompt) - (len(*gitLogMap) * 15) - 10
+	maxInputTokenCount := int(aiModel.MaxInputTokenCount*1000) - len(prompt) - (gitLogMapKeyCount * 15) - 10
 	// 每个GIT仓库可以分配到多少TOKEN的比例
 	ratio := float64(maxInputTokenCount) / float64(maxLogLen)
 	log.Debug("maxInputTokenCount=", maxInputTokenCount)
 	log.Debug("maxLogLen=", maxLogLen)
 	log.Debug("ratio=", ratio)
+	if float64(maxLogLen) <= 0 {
+		log.Fatal("maxLogLen异常")
+	}
 
-	for repoName, gitLog := range gitLogM {
+	gitLogMap.Range(func(key, value interface{}) bool {
+		repoName := key.(string)
+		gitLog := value.(string)
 		maxGitLogLen := int(float64(len(gitLog)) * ratio)
 		log.Debug("repoName=", repoName)
 		log.Debug("gitLog原始长度=", len(gitLog))
@@ -66,14 +98,14 @@ func makeAiReq(gitLogMap *map[string]string, maxLogLen int, prompt string) strin
 		}
 		log.Debug("gitLog最终长度=", len(gitLog))
 		gitLogLarge += "\n以下是" + repoName + "仓库的GIT日志\n" + gitLog
-	}
-
+		return true
+	})
 	return gitLogLarge
 }
 
-func getGitLogs(repo string, gitLogMap *map[string]string, maxLogLen *int) {
-	gitLogM := *gitLogMap
-
+func getGitLogs(repo string, gitLogMap *sync.Map, maxLogLen *int64, cmdInfo CmdInfo) {
+	// 调用CMD获取指定目录下的所有GIT仓库地址
+	// TODO: 改成内置方法，以便于支撑跨平台
 	repoPathStr, err := execCmd("cmd", "/c", "cd "+repo+" && for /d /r %i in (.git) do @if exist %i\\HEAD echo %i")
 	if err != nil {
 		log.Fatal("获取GIT仓库地址异常")
@@ -82,24 +114,27 @@ func getGitLogs(repo string, gitLogMap *map[string]string, maxLogLen *int) {
 	repoPathStr = strings.Replace(repoPathStr, "\r\n", "\n", -1)
 	repoPaths := strings.Split(repoPathStr, "\n")
 
+	var wg sync.WaitGroup
 	for _, repoPath := range repoPaths {
-		if len(repoPath) == 0 {
-			continue
-		}
-		gitLog, err := getGitLog(repoPath)
-		if err != nil {
-			log.Error("[异常] 获取工作日志异常", repoPath)
-		}
-		if len(gitLog) == 0 {
-			log.Info("未找到工作日志", repoPath)
-		} else {
-			repoName := filepath.Base(filepath.Dir(repoPath))
-			gitLogM[repoName] = gitLog
-			// 后续需要用到repoPath，于是提前加入，防止长度溢出
-			*maxLogLen += len(gitLog) + len(repoName)
-			log.Info("已加载", repoPath)
-		}
+		wg.Add(1)
+		go func(repoPath string) {
+			defer wg.Done()
+			if len(repoPath) == 0 {
+				return
+			}
+			gitLog, err := getGitLog(repoPath, cmdInfo)
+			if err != nil {
+				log.Error("[异常] 获取工作日志异常", repoPath)
+			}
+			if len(gitLog) == 0 {
+				log.Info("未找到工作日志", repoPath)
+			} else {
+				getGitLogAfter(repoPath, &gitLog, gitLogMap, maxLogLen)
+				log.Info("已加载", repoPath)
+			}
+		}(repoPath)
 	}
+	wg.Wait()
 }
 
 func execCmd(name string, arg ...string) (string, error) {
@@ -108,6 +143,11 @@ func execCmd(name string, arg ...string) (string, error) {
 		return "", err
 	}
 	return string(out), nil
+}
+
+type CmdInfo struct {
+	Username string
+	Date     string
 }
 
 func getEndGitUsername() string {
@@ -123,16 +163,22 @@ func getEndGitUsername() string {
 	return username
 }
 
-func getGitLog(repoPath string) (string, error) {
-	// 获取当前日期-1
-	now := time.Now().AddDate(0, 0, -getReportIntervalDayConf()+1).Format(time.DateOnly)
-	afterCmd := "--after=\"" + now + " 00:00:00\""
+func getGitLogAfter(repoPath string, gitLog *string, gitLogMap *sync.Map, maxLogLen *int64) {
+	repoName := filepath.Base(filepath.Dir(repoPath))
+	gitLogMap.Store(repoName, *gitLog)
+	// 后续需要用到repoPath，于是提前加入，防止长度溢出
+	atomic.AddInt64(maxLogLen, int64(len(*gitLog)+len(repoName)))
+}
 
-	committerCmd := "--committer=" + getEndGitUsername()
+func getGitLog(repoPath string, cmdInfo CmdInfo) (string, error) {
+	// 获取当前日期-1
+	afterCmd := "--after=\"" + cmdInfo.Date + " 00:00:00\""
+
+	committerCmd := "--committer=" + cmdInfo.Username
 
 	dirCmd := "--git-dir=" + repoPath
 
-	switch getReportModeConf() {
+	switch reportModeConf {
 	case "normal":
 		return execCmd("git", dirCmd, "log", "--stat", "-p", afterCmd, committerCmd)
 	case "simple":
