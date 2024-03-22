@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -15,9 +18,14 @@ import (
 )
 
 var reportModeConf string
+var reportCycle string
 
 func init() {
 	log.SetLevel(log.DebugLevel)
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:   true,
+		FullTimestamp: true,
+	})
 
 	// 初始化配置管理器
 	viper.AutomaticEnv()
@@ -33,14 +41,77 @@ func init() {
 	reportModeConf = getReportModeConf()
 }
 
+func loadCmdParams() {
+	// 从命令行参数读取配置
+	flag.StringVar(&reportCycle, "c", "week", "报告周期[day|week]")
+	flag.Parse()
+	log.Debug("[命令行参数] reportCycle=", reportCycle)
+}
+
+// TODO: 调整代码层次结构
 func main() {
+	loadCmdParams()
+	prompt := getAiPromptConf(reportCycle)
+
+	gitLog := fire(prompt)
+
+	client := resty.New()
+	reportText := aiReq(
+		client,
+		prompt,
+		&gitLog,
+	)
+	out(&reportText)
+}
+
+func out(reportText *string) {
+	switch getReportOutConf() {
+	case "file":
+		writeFile(reportText)
+	case "print":
+		fmt.Println(*reportText)
+	default:
+		log.Fatal("不支持的输出方式：", getReportOutConf())
+	}
+}
+
+func writeFile(reportText *string) {
+	nowDate := time.Now().Format(time.DateOnly)
+	file, err := os.Create(nowDate + ".txt")
+	if err != nil {
+		log.Fatal("An error occurred while opening the file:", err)
+		return
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Fatal("An error occurred while opening the file:", err)
+		}
+	}(file)
+
+	// 将字符串写入文件
+	_, err = io.WriteString(file, *reportText)
+	if err != nil {
+		log.Fatal("An error occurred while writing to file:", err)
+		return
+	}
+}
+
+func getCmdInfoDate(dayOrWeek string) string {
+	const timeStr = " 00:00:00"
+	if dayOrWeek == "week" {
+		return time.Now().AddDate(0, 0, -7+1).Format(time.DateOnly) + timeStr
+	}
+	return time.Now().AddDate(0, 0, -getReportIntervalDayConf()+1).Format(time.DateOnly) + timeStr
+}
+
+func fire(prompt string) string {
 	var maxLogLen int64 = 0
 	var gitLogMap = sync.Map{}
-	prompt := getAiPromptConf()
 
 	var cmdInfo = CmdInfo{
 		Username: getEndGitUsername(),
-		Date:     time.Now().AddDate(0, 0, -getReportIntervalDayConf()+1).Format(time.DateOnly),
+		Date:     getCmdInfoDate(reportCycle),
 	}
 
 	var wg sync.WaitGroup
@@ -56,17 +127,14 @@ func main() {
 	gitLog := makeAiReq(&gitLogMap, maxLogLen, prompt)
 	log.Debug("maxLogLen=", maxLogLen)
 	log.Debug("len(gitLog)=", len(gitLog))
-
-	client := resty.New()
-
-	aiReq(
-		client,
-		getAiPromptConf(),
-		&gitLog,
-	)
+	return gitLog
 }
 
 func makeAiReq(gitLogMap *sync.Map, maxLogLen int64, prompt string) string {
+	if maxLogLen <= 0 {
+		log.Fatal("未发现存在日志内容，请检查日志，退出")
+	}
+
 	gitLogMapKeyCount := 0
 	gitLogMap.Range(func(_, _ interface{}) bool {
 		gitLogMapKeyCount++
@@ -82,9 +150,6 @@ func makeAiReq(gitLogMap *sync.Map, maxLogLen int64, prompt string) string {
 	log.Debug("maxInputTokenCount=", maxInputTokenCount)
 	log.Debug("maxLogLen=", maxLogLen)
 	log.Debug("ratio=", ratio)
-	if float64(maxLogLen) <= 0 {
-		log.Fatal("maxLogLen异常")
-	}
 
 	gitLogMap.Range(func(key, value interface{}) bool {
 		repoName := key.(string)
@@ -172,7 +237,7 @@ func getGitLogAfter(repoPath string, gitLog *string, gitLogMap *sync.Map, maxLog
 
 func getGitLog(repoPath string, cmdInfo CmdInfo) (string, error) {
 	// 获取当前日期-1
-	afterCmd := "--after=\"" + cmdInfo.Date + " 00:00:00\""
+	afterCmd := "--after=\"" + cmdInfo.Date + "\""
 
 	committerCmd := "--committer=" + cmdInfo.Username
 
@@ -211,7 +276,7 @@ type ApiRes struct {
 	RequestID string `json:"request_id"`
 }
 
-func aiReq(client *resty.Client, prompt string, gitLog *string) {
+func aiReq(client *resty.Client, prompt string, gitLog *string) string {
 	log.Info("请求大模型中......")
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -238,5 +303,5 @@ func aiReq(client *resty.Client, prompt string, gitLog *string) {
 	if jsonErr != nil {
 		log.Fatal(jsonErr)
 	}
-	fmt.Println(result.Output.Text)
+	return result.Output.Text
 }

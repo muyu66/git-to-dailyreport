@@ -10,22 +10,67 @@
 * **多仓库**：自动读取指定多个目录下的所有仓库
 * 自动/手动指定Git Author，防止工作日志错领
 * 支持切换日报详细程度模式 (简单/详细)，简单模式可以节省AI TOKEN消费
+* 支持周报
+* 支持终端显示工作报告，亦或是生成文本文件
 
 ![](https://z1.wzznft.com/i/2024/03/21/iu9yyz.gif "to boss")
 
-## 开始使用
+## 一键开始
 
 Windows
 
-    执行 report.exe
+    双击 一键生成日报.bat
+    OR
+    双击 一键生成周报.bat
 
 * 开通阿里大模型 https://dashscope.aliyun.com
 * 配置文件 需要将`config.sample.yaml`重命名为`config.yaml`，并填写配置
-* 确保`config.yaml`与`dailyreport.exe`在同一个目录下
+* 确保`config.yaml`与`report.exe`在同一个目录下
+
+## 命令行使用
+
+    $ .\bin\report.exe
+
+示例
+
+    $ .\bin\report.exe -c week
+
+| 参数 | 默认值 | 可选值      | 描述     |
+|----|-----|----------|--------|
+| -c | day | day week | 工作报告周期 |
 
 ## 效果展示
 
+日报图片：
 ![](https://free.wzznft.com/i/2024/03/21/p1idmz.png)
+周报图片：
+![](https://free.wzznft.com/i/2024/03/22/upq0ns.png)
+周报文本：
+
+```text
+尊敬的领导：
+
+您好！我是程序员周宇，本周我主要完成了以下工作内容。
+
+1. 更新评分相关功能：
+   在newhire仓库中，我对评分相关功能进行了更新，以确保其正常运行和提供准确的评分数据。这个改动对于提升我们的工作效率和准确性至关重要。
+
+2. 添加并发和单测支持：
+   在git-to-dailyreport仓库中，我添加了并发和单测的支持，这将有助于我们更好地测试代码并提高开发效率。同时，我还对代码进行了一些优化和调整，以确保项目的稳定性和可靠性。
+
+3. 完成项目整合：
+   在newhire-rate仓库中，我完成了项目整合工作，并进行了性能优化。通过这些改进，我们的系统将能够更高效地处理大量数据，并为用户提供更好的体验。
+
+在接下来的一周里，我计划继续关注以下几个方面的工作：
+
+1. 优化代码结构和性能：为了提高系统的稳定性，我打算进一步优化代码结构和性能，以减少潜在的错误和提高整体运行效率。
+
+2. 引入新的大模型支持：我将继续研究如何引入更多种类的大模型支持，以便我们可以根据不同的场景和需求选择最合适的模型。
+
+3. 增强可视化配置：为了让用户更容易理解和使用我们的系统，我将努力增强可视化配置功能，使用户可以更加直观地设置和管理自己的参数。
+
+感谢您抽出宝贵的时间阅读我的工作报告。如果您有任何问题或建议，请随时与我联系。我会尽我最大的努力来完成下周的工作，并不断提升我们的产品和服务质量。
+```
 
 ## 编译 Win64
 
@@ -45,14 +90,14 @@ aiPrompt: |
   我的git日志如下:
 ai:
   ak: sk-xxxxxxxxxxxxxxxxxxx
-  # qwen1.5-72b-chat 完美
-  # qwen1.5-14b-chat 可以
-  # qwen1.5-7b-chat 勉强
-  # qwen-1.8b-chat 智障
+  # qwen1.5-72b-chat ⭐⭐⭐⭐
+  # qwen1.5-14b-chat ⭐⭐⭐
+  # qwen1.5-7b-chat ⭐⭐
+  # qwen-1.8b-chat ⭐
   # qwen-plus 未知
   # qwen-turbo 未知
   # qwen-max-1201 未知
-  # qwen-max-longcontext 未知
+  # qwen-max-longcontext ⭐⭐⭐⭐
   model: qwen-max-longcontext
   url: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
 git:
@@ -72,6 +117,10 @@ report:
   # 间隔多少天汇报一次，默认一天报告一次
   # 1=只含今天，2=今天和昨天
   intervalDay: 1
+  # 输出模式
+  # file 输出文本文件
+  # print 打印到终端
+  out: file
 ```
 
 ## Roadmap
@@ -81,12 +130,11 @@ report:
 * 可视化配置
 * 更多大模型支持 (百度系、Meta、Google等)
 * 更加傻瓜智能化，力求一键全自动处理
-* 多种结果输出方式 (文本/终端/Webhook/JS内挂)
+* 多种结果输出方式 (Webhook/JS内挂/EMAIL/Markdown)
 * 兼容Linux/MACOS
 * 将工作范围简要报告给使用者
-* 周报
 * 应对加班等可能跨天的日报
-* 日报的天数可自定义
+* tty模式配置向导
 
 ## Contributors
 

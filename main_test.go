@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/stretchr/testify/assert"
 	"os"
+	"strconv"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestGetEndGitUsername(t *testing.T) {
@@ -47,4 +49,47 @@ func TestMakeAiReq(t *testing.T) {
 	expected := "\n以下是repo1仓库的GIT日志\ngit log 1\n以下是repo2仓库的GIT日志\ngit log 2"
 
 	assert.Equal(t, expected, result)
+}
+
+func TestGetCmdInfoDate(t *testing.T) {
+	var d1 = time.Now().AddDate(0, 0, -6).Format(time.DateOnly) + " 00:00:00"
+	var d2 = time.Now().AddDate(0, 0, 0).Format(time.DateOnly) + " 00:00:00"
+	var d3 = time.Now().AddDate(0, 0, -1).Format(time.DateOnly) + " 00:00:00"
+
+	testCases := []struct {
+		id          string
+		reportCycle string
+		expected    string
+		env         string
+	}{
+		{"1", "week", d1, "1"},
+		{"2", "day", d2, "1"},
+		{"3", "day", d3, "2"},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.id, func(t *testing.T) {
+			_ = os.Setenv("report.intervalDay", tc.env)
+			result := getCmdInfoDate(tc.reportCycle)
+			expected := tc.expected
+			assert.Equal(t, expected, result)
+		})
+	}
+}
+
+func TestWriteFile(t *testing.T) {
+	testText := "hahahahah"
+	writeFile(&testText)
+
+	testText2 := strconv.FormatInt(time.Now().Unix(), 10)
+	writeFile(&testText2)
+
+	var fileName = time.Now().Format(time.DateOnly) + ".txt"
+	file, err := os.ReadFile(fileName)
+	if err != nil {
+		assert.Fail(t, "")
+	}
+	assert.Equal(t, string(file), testText2)
+
+	// 清理
+	_ = os.Remove(fileName)
 }

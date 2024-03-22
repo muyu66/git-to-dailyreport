@@ -2,8 +2,11 @@ package main
 
 import "github.com/spf13/viper"
 
-func getAiPromptConf() string {
-	return viper.GetString("aiPrompt")
+func getAiPromptConf(dayOrWeek string) string {
+	if dayOrWeek == "week" {
+		return viper.GetString("aiPrompt.week")
+	}
+	return viper.GetString("aiPrompt.day")
 }
 
 func getAiAkConf() string {
@@ -32,4 +35,8 @@ func getGitReposConf() []string {
 
 func getReportIntervalDayConf() int {
 	return viper.GetInt("report.intervalDay")
+}
+
+func getReportOutConf() string {
+	return viper.GetString("report.out")
 }

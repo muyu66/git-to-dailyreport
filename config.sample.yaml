@@ -6,14 +6,14 @@ aiPrompt: |
   我的git日志如下:
 ai:
   ak: sk-xxxxxxxxxxxxxxxxxxx
-  # qwen1.5-72b-chat 完美
-  # qwen1.5-14b-chat 可以
-  # qwen1.5-7b-chat 勉强
-  # qwen-1.8b-chat 智障
+  # qwen1.5-72b-chat ⭐⭐⭐⭐
+  # qwen1.5-14b-chat ⭐⭐⭐
+  # qwen1.5-7b-chat ⭐⭐
+  # qwen-1.8b-chat ⭐
   # qwen-plus 未知
   # qwen-turbo 未知
   # qwen-max-1201 未知
-  # qwen-max-longcontext 未知
+  # qwen-max-longcontext ⭐⭐⭐⭐
   model: qwen-max-longcontext
   url: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
 git:
@@ -33,3 +33,7 @@ report:
   # 间隔多少天汇报一次，默认一天报告一次
   # 1=只含今天，2=今天和昨天
   intervalDay: 1
+  # 输出模式
+  # file 输出文本文件
+  # print 打印到终端
+  out: file
