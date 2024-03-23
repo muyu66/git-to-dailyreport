@@ -8,6 +8,7 @@
 * **报告聚合**：支持多个仓库的工作量自动聚合，自动加权均衡上报
 * **多模型适配**：暂时只支持通义千问大模型、通义千问开源大模型
 * **多仓库**：自动读取指定多个目录下的所有仓库
+* **中英双语**：可用于外企工作汇报
 * 自动/手动指定Git Author，防止工作日志错领
 * 支持切换日报详细程度模式 (简单/详细)，简单模式可以节省AI TOKEN消费
 * 支持周报
@@ -41,11 +42,11 @@ Windows
 
 ## 效果展示
 
-日报图片：
+日报：
 ![](https://free.wzznft.com/i/2024/03/21/p1idmz.png)
-周报图片：
+周报：
 ![](https://free.wzznft.com/i/2024/03/22/upq0ns.png)
-周报文本：
+周报：
 
 ```text
 尊敬的领导：
@@ -72,6 +73,33 @@ Windows
 感谢您抽出宝贵的时间阅读我的工作报告。如果您有任何问题或建议，请随时与我联系。我会尽我最大的努力来完成下周的工作，并不断提升我们的产品和服务质量。
 ```
 
+周报：
+
+```text
+Subject: Weekly Report - Mar 18 to Mar 24, 2024
+Dear [Boss's Name],
+
+I hope this email finds you well. I am writing to provide an overview of my work activities for the week ending March 24th, 2024.
+
+1. Update on Rating-Related Features (March 18)
+This week, I focused on updating the rating-related features in the newhire repository. I made changes to the build.gradle file to enhance the overall functionality and user experience.
+2. Addition of More Features (March 22)
+In the git-to-dailyreport repository, I added more features to improve the tool's capabilities. These updates include support for weekly reports and a terminal display option for generating reports. The README.md file was also updated with detailed information about these new features.
+3. Completion of Newhire-Rate Project (March 19)
+The newhire-rate project reached completion this week. I refactored and optimized several components, including the calc package, benchmarking tests, and consumer.go. These improvements led to significant performance enhancements, as demonstrated by the benchmark results.
+4. Initialization of News-by-AI Project (March 22)
+I began working on the news-by-ai project by setting up the initial files and dependencies. This includes creating the .gitignore, ai.go, config.go, go.mod, and go.sum files, as well as the main.go entry point for the application.
+
+Looking ahead to next week, I plan to continue enhancing the git-to-dailyreport tool by addressing any bugs or issues that may arise. Additionally, I will focus on further developing the news-by-ai project, incorporating artificial intelligence algorithms to generate news content.
+
+Thank you for your time and consideration. If you have any questions or require further clarification on any of the tasks mentioned above, please do not hesitate to reach out.
+
+Best regards,
+
+[Your Name]
+[Your Title]
+```
+
 ## 编译 Win64
 
     .\build.bat # 编译脚本
@@ -82,12 +110,6 @@ Windows
 config.yaml (与report.exe同目录)
 
 ```yaml
-aiPrompt: |
-  我是一名程序员，我想用git日志来向领导表达我今天的工作内容，帮我根据git日志生成我今天的工作内容报道。
-  要求你以我的身份第一视角来写这份报告，不要提到是你帮助我写的，也不要透露是根据git日志生成的。
-  不要提到commit之类的git概念
-  需要分点来写
-  我的git日志如下:
 ai:
   ak: sk-xxxxxxxxxxxxxxxxxxx
   # qwen1.5-72b-chat ⭐⭐⭐⭐
@@ -121,12 +143,13 @@ report:
   # file 输出文本文件
   # print 打印到终端
   out: file
+  # 报告语言 [chs|en]
+  lang: chs
 ```
 
 ## Roadmap
 
 * 将工作区、Stage区纳入上报的工作范围
-* 支持超大规模压缩日志上传
 * 可视化配置
 * 更多大模型支持 (百度系、Meta、Google等)
 * 更加傻瓜智能化，力求一键全自动处理

@@ -11,14 +11,16 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
-var reportModeConf string
 var reportCycle string
+var reportModeConf string
+var reportLangConf string
 
 func init() {
 	log.SetLevel(log.DebugLevel)
@@ -39,6 +41,7 @@ func init() {
 
 	// 初始化全局配置
 	reportModeConf = getReportModeConf()
+	reportLangConf = getReportLangConf()
 }
 
 func loadCmdParams() {
@@ -51,7 +54,7 @@ func loadCmdParams() {
 // TODO: 调整代码层次结构
 func main() {
 	loadCmdParams()
-	prompt := getAiPromptConf(reportCycle)
+	prompt := getAiPrompt(reportCycle, reportLangConf)
 
 	gitLog := fire(prompt)
 
@@ -62,6 +65,17 @@ func main() {
 		&gitLog,
 	)
 	out(&reportText)
+}
+
+func formatText(content string) string {
+	return regexp.MustCompile(`\s+`).ReplaceAllString(content, "")
+}
+
+func getAiPrompt(dayOrWeek string, lang string) string {
+	if dayOrWeek == "week" {
+		return getWeekPrompt(lang)
+	}
+	return getDayPrompt(lang)
 }
 
 func out(reportText *string) {
@@ -191,6 +205,8 @@ func getGitLogs(repo string, gitLogMap *sync.Map, maxLogLen *int64, cmdInfo CmdI
 			if err != nil {
 				log.Error("[异常] 获取工作日志异常", repoPath)
 			}
+			// 压缩文本体积
+			gitLog = formatText(gitLog)
 			if len(gitLog) == 0 {
 				log.Info("未找到工作日志", repoPath)
 			} else {
