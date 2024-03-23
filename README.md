@@ -2,6 +2,8 @@
 
 将Git日志通过大模型自动转换成每日工作报告
 
+[![Release](https://img.shields.io/github/release/muyu66/git-to-dailyreport.svg?style=flat-square)](https://github.com/muyu66/git-to-dailyreport/releases)
+
 ## 特点
 
 * **所码即所报**：无人工干预地自动读取Git日志，根据commit时间、作者自动选取，上传大模型解析成工作报告
