@@ -3,6 +3,7 @@
 将Git日志通过大模型自动转换成每日工作报告
 
 [![Release](https://img.shields.io/github/release/muyu66/git-to-dailyreport.svg?style=flat-square)](https://github.com/muyu66/git-to-dailyreport/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 ## 特点
 
@@ -16,7 +17,7 @@
 * 支持周报
 * 支持终端显示工作报告，亦或是生成文本文件
 
-![](https://z1.wzznft.com/i/2024/03/21/iu9yyz.gif "to boss")
+![](public/pic1.gif "to boss")
 
 ## 一键开始
 
@@ -45,9 +46,9 @@ Windows
 ## 效果展示
 
 日报：
-![](https://free.wzznft.com/i/2024/03/21/p1idmz.png)
+![](public/pic2.png)
 周报：
-![](https://free.wzznft.com/i/2024/03/22/upq0ns.png)
+![](public/pic3.png)
 周报：
 
 ```text
@@ -153,13 +154,15 @@ report:
 
 * 将工作区、Stage区纳入上报的工作范围
 * 可视化配置
-* 更多大模型支持 (百度系、Meta、Google等)
+* 更多开源大模型支持 (llama2/gemma)
+* 更多私有大模型支持
 * 更加傻瓜智能化，力求一键全自动处理
 * 多种结果输出方式 (Webhook/JS内挂/EMAIL/Markdown)
 * 兼容Linux/MACOS
 * 将工作范围简要报告给使用者
 * 应对加班等可能跨天的日报
 * tty模式配置向导
+* 支持本地大模型
 
 ## Contributors
 
