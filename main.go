@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/go-resty/resty/v2"
@@ -46,7 +45,7 @@ func init() {
 
 func loadCmdParams() {
 	// 从命令行参数读取配置
-	flag.StringVar(&reportCycle, "c", "week", "报告周期[day|week]")
+	flag.StringVar(&reportCycle, "c", "day", "报告周期[day|week]")
 	flag.Parse()
 	log.Debug("[命令行参数] reportCycle=", reportCycle)
 }
@@ -59,7 +58,12 @@ func main() {
 	gitLog := fire(prompt)
 
 	client := resty.New()
-	reportText := aiReq(
+
+	ai, err := AiFactory(getAiNameConf())
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	reportText := ai.request(
 		client,
 		prompt,
 		&gitLog,
@@ -267,57 +271,4 @@ func getGitLog(repoPath string, cmdInfo CmdInfo) (string, error) {
 	default:
 		return execCmd("git", dirCmd, "log", "--stat", afterCmd, committerCmd)
 	}
-}
-
-type ApiReqBody struct {
-	Model string          `json:"model"`
-	Input ApiReqBodyInput `json:"input"`
-	//Messages []ApiReqBodyMessage `json:"messages"`
-}
-
-type ApiReqBodyMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type ApiReqBodyInput struct {
-	Prompt string `json:"prompt"`
-}
-
-type ApiRes struct {
-	Output struct {
-		FinishReason string `json:"finish_reason"`
-		Text         string `json:"text"`
-	} `json:"output"`
-	RequestID string `json:"request_id"`
-}
-
-func aiReq(client *resty.Client, prompt string, gitLog *string) string {
-	log.Info("请求大模型中......")
-	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetAuthToken("Bearer " + getAiAkConf()).
-		SetBody(ApiReqBody{
-			Model: getAiModelConf(),
-			Input: ApiReqBodyInput{
-				Prompt: prompt + *gitLog,
-			},
-		}).
-		Post(getAiUrlConf())
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	if resp.StatusCode() != 200 {
-		log.Fatal(resp)
-	}
-
-	log.Info("请求完成......")
-
-	result := ApiRes{}
-	jsonErr := json.Unmarshal(resp.Body(), &result)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-	return result.Output.Text
 }

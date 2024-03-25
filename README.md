@@ -12,6 +12,7 @@
 * **多模型适配**：暂时只支持通义千问大模型、通义千问开源大模型
 * **多仓库**：自动读取指定多个目录下的所有仓库
 * **中英双语**：可用于外企工作汇报
+* **云端/本地双启动**：支持阿里灵积服务、ollama本地模型
 * 自动/手动指定Git Author，防止工作日志错领
 * 支持切换日报详细程度模式 (简单/详细)，简单模式可以节省AI TOKEN消费
 * 支持周报
@@ -114,6 +115,8 @@ config.yaml (与report.exe同目录)
 
 ```yaml
 ai:
+  # [aliyun|ollama]
+  name: aliyun
   ak: sk-xxxxxxxxxxxxxxxxxxx
   # qwen1.5-72b-chat ⭐⭐⭐⭐
   # qwen1.5-14b-chat ⭐⭐⭐
@@ -124,7 +127,6 @@ ai:
   # qwen-max-1201 未知
   # qwen-max-longcontext ⭐⭐⭐⭐
   model: qwen-max-longcontext
-  url: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
 git:
   # 不会空则以此username为准，防止误领别人的工作
   # 为空字符串则自动获取
@@ -154,12 +156,11 @@ report:
 
 * 将工作区、Stage区纳入上报的工作范围
 * 可视化配置
-* 更多开源大模型支持 (llama2/gemma)
 * 更多私有大模型支持
 * 更加傻瓜智能化，力求一键全自动处理
 * 多种结果输出方式 (Webhook/JS内挂/EMAIL/Markdown)
 * 兼容Linux/MACOS
-* 将工作范围简要报告给使用者
+* 将会提交的工作范围简要报告给使用者
 * 应对加班等可能跨天的日报
 * tty模式配置向导
 * 支持本地大模型

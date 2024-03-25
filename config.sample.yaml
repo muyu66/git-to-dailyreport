@@ -1,4 +1,6 @@
 ai:
+  # [aliyun|ollama]
+  name: aliyun
   ak: sk-xxxxxxxxxxxxxxxxxxx
   # qwen1.5-72b-chat ⭐⭐⭐⭐
   # qwen1.5-14b-chat ⭐⭐⭐
@@ -9,7 +11,6 @@ ai:
   # qwen-max-1201 未知
   # qwen-max-longcontext ⭐⭐⭐⭐
   model: qwen-max-longcontext
-  url: https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation
 git:
   # 不会空则以此username为准，防止误领别人的工作
   # 为空字符串则自动获取

@@ -8,6 +8,10 @@ type AiModel struct {
 var aiModels = []AiModel{
 	// 默认
 	{
+		Name:               "low-mem",
+		MaxInputTokenCount: 3,
+	},
+	{
 		Name:               "qwen-1.8b-chat",
 		MaxInputTokenCount: 6,
 	},
