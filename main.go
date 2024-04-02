@@ -17,9 +17,12 @@ import (
 	"time"
 )
 
-var reportCycle string
-var reportModeConf string
-var reportLangConf string
+var (
+	reportCycle    string
+	reportModeConf string
+	reportLangConf string
+	reportFlowConf bool
+)
 
 func init() {
 	log.SetLevel(log.DebugLevel)
@@ -41,6 +44,7 @@ func init() {
 	// 初始化全局配置
 	reportModeConf = getReportModeConf()
 	reportLangConf = getReportLangConf()
+	reportFlowConf = getReportFlowConf()
 }
 
 func loadCmdParams() {
@@ -63,12 +67,26 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	reportText := ai.request(
-		client,
-		prompt,
-		&gitLog,
-	)
-	out(&reportText)
+
+	var msg AiReqBodyMessage
+	if reportFlowConf {
+		msg = flow(
+			ai,
+			client,
+			prompt+gitLog,
+		)
+	} else {
+		msg = ai.request(
+			client,
+			[]AiReqBodyMessage{
+				{
+					Role:    "user",
+					Content: prompt + gitLog,
+				},
+			},
+		)
+	}
+	out(&msg.Content)
 }
 
 func formatText(content string) string {

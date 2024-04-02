@@ -37,3 +37,7 @@ func getReportOutConf() string {
 func getReportLangConf() string {
 	return viper.GetString("report.lang")
 }
+
+func getReportFlowConf() bool {
+	return viper.GetBool("report.flow")
+}
