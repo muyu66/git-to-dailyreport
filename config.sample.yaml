@@ -1,16 +1,25 @@
+# 对于不使用的接口，可以不填
 ai:
-  # [aliyun|ollama]
-  name: aliyun
-  ak: sk-xxxxxxxxxxxxxxxxxxx
-  # qwen1.5-72b-chat ⭐⭐⭐⭐
-  # qwen1.5-14b-chat ⭐⭐⭐
-  # qwen1.5-7b-chat ⭐⭐
-  # qwen-1.8b-chat ⭐
-  # qwen-plus 未知
-  # qwen-turbo 未知
-  # qwen-max-1201 未知
-  # qwen-max-longcontext ⭐⭐⭐⭐
-  model: qwen-max-longcontext
+  aliyun-dashscope:
+    model: qwen1.5-72b-chat
+    apiKey: sk-xxxxxxxxxxxxxxxxxxx
+    baseUrl: https://dashscope.aliyuncs.com
+    # 请按当前大模型支持的TOKEN数量来输入，如有节省TOKEN考虑，可以设小。TOKEN数量可以查阅相关文档
+    maxInputTokens: 6000
+  ollama:
+    model: qwen:latest
+    apiKey:
+    baseUrl: http://localhost:11434
+    # 同上
+    maxInputTokens: 6000
+  openai:
+    model: gpt-3.5-turbo
+    apiKey: sk-xxxxxxxxxxxxxxxxxxx
+    baseUrl: https://api.chatanywhere.com.cn
+    # 同上
+    maxInputTokens: 6000
+# 选择使用的AI接口
+useAi: openai
 git:
   # 不会空则以此username为准，防止误领别人的工作
   # 为空字符串则自动获取
@@ -31,6 +40,8 @@ report:
   # 输出模式
   # file 输出文本文件
   # print 打印到终端
-  out: file
+  out: print
   # 报告语言 [chs|en]
   lang: chs
+  # 是否开启AI-FLOW以提高报告精准度 (会额外消耗小部分TOKEN和时间)
+  flow: true

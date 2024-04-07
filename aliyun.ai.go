@@ -7,15 +7,23 @@ import (
 )
 
 type AliyunAi struct {
+	Config AiConfig
+}
+
+func (ai AliyunAi) before() {
+	log.Info("请求大模型中......")
+}
+
+func (ai AliyunAi) after() {
+	log.Info("请求完成......")
 }
 
 func (ai AliyunAi) request(client *resty.Client, messages []AiReqBodyMessage) AiReqBodyMessage {
-	log.Info("请求大模型中......")
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		SetAuthToken("Bearer " + getAiAkConf()).
+		SetAuthToken(ai.Config.ApiKey).
 		SetBody(AiReqBody{
-			Model: getAiModelConf(),
+			Model: ai.Config.Model,
 			Input: AiReqBodyInput{
 				Messages: messages,
 			},
@@ -23,7 +31,7 @@ func (ai AliyunAi) request(client *resty.Client, messages []AiReqBodyMessage) Ai
 				ResultFormat: Message,
 			},
 		}).
-		Post("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
+		Post(ai.Config.BaseUrl + "/api/v1/services/aigc/text-generation/generation")
 
 	if err != nil {
 		log.Fatal(err)
@@ -31,8 +39,6 @@ func (ai AliyunAi) request(client *resty.Client, messages []AiReqBodyMessage) Ai
 	if resp.StatusCode() != 200 {
 		log.Fatal(resp)
 	}
-
-	log.Info("请求完成......")
 
 	result := AiRes{}
 	jsonErr := json.Unmarshal(resp.Body(), &result)

@@ -1,9 +1,16 @@
-# Git to DailyReport
+<div align="center">
+  <h1> Git to DailyReport </h1>
+将Git日志通过大模型自动转换成每日/周工作报告
+</div>
 
-将Git日志通过大模型自动转换成每日工作报告
-
-[![Release](https://img.shields.io/github/release/muyu66/git-to-dailyreport.svg?style=flat-square)](https://github.com/muyu66/git-to-dailyreport/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+<div align="center">
+  <a href="https://github.com/muyu66/git-to-dailyreport/releases">
+    <img src="https://img.shields.io/github/release/muyu66/git-to-dailyreport.svg?style=flat-square" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg">
+  </a>
+</div>
 
 ## 特点
 
@@ -18,22 +25,48 @@
 * 支持周报
 * 支持终端显示工作报告，亦或是生成文本文件
 * 支持AI Flow工作方式，提供模型文本准确度
+* 已接入OpenAI，并可以支持国内代理地址
+* 已接入ollama
 
 ![](public/pic1.gif "to boss")
 
-## 一键开始
+## 开始使用
 
-Windows
+1. **申请AI大模型**
 
-    双击 一键生成日报.bat
-    OR
-    双击 一键生成周报.bat
+```markdown
+提供 Ollama、阿里云DashScope、OpenAI三种接入方式
+```
 
-* 开通阿里大模型 https://dashscope.aliyun.com
-* 配置文件 需要将`config.sample.yaml`重命名为`config.yaml`，并填写配置
-* 确保`config.yaml`与`report.exe`在同一个目录下
+Ollama：前往 [Ollama Github](https://github.com/ollama/ollama) 安装
 
-## 命令行使用
+阿里云DashScope：前往 [DashScope主页](https://dashscope.aliyun.com) 开通相关功能
+
+OpenAI： 前往 [OpenAI Doc](https://platform.openai.com/api-keys) 获取ApiKey。或者尝试免费的国内代理 [Chatanywhere](https://github.com/chatanywhere/GPT_API_free)
+
+2. **配置**
+
+```markdown
+根据配置文件 `config.sample.yaml` 配置相关参数，并重命名为`config.yaml`放置于 report.exe 同目录下
+```
+
+3. **运行在 Windows**
+
+```shell
+    .\一键生成日报.bat
+```
+
+```shell
+    .\一键生成周报.bat
+```
+
+4. **运行在 Linux Or Docker**
+
+```markdown
+// TODO:
+```
+
+## 高级使用
 
     $ .\bin\report.exe
 
@@ -44,6 +77,14 @@ Windows
 | 参数 | 默认值 | 可选值      | 描述     |
 |----|-----|----------|--------|
 | -c | day | day week | 工作报告周期 |
+
+## 编译 Win64 (可选)
+
+需要 go 1.22+
+
+```shell
+    .\build.bat # 执行编译脚本
+```
 
 ## 效果展示
 
@@ -105,54 +146,6 @@ Best regards,
 [Your Title]
 ```
 
-## 编译 Win64
-
-    .\build.bat # 编译脚本
-    .\bin\report.exe # 开始使用
-
-## 配置文件示例
-
-config.yaml (与report.exe同目录)
-
-```yaml
-ai:
-  # [aliyun|ollama]
-  name: aliyun
-  ak: sk-xxxxxxxxxxxxxxxxxxx
-  # qwen1.5-72b-chat ⭐⭐⭐⭐
-  # qwen1.5-14b-chat ⭐⭐⭐
-  # qwen1.5-7b-chat ⭐⭐
-  # qwen-1.8b-chat ⭐
-  # qwen-plus 未知
-  # qwen-turbo 未知
-  # qwen-max-1201 未知
-  # qwen-max-longcontext ⭐⭐⭐⭐
-  model: qwen-max-longcontext
-git:
-  # 不会空则以此username为准，防止误领别人的工作
-  # 为空字符串则自动获取
-  username:
-  repo:
-    # [数组]
-    # 自动遍历目录下的所有git仓库
-    # 可以填项目集中的目录: C:\Web
-    # 也可以填具体仓库目录: C:\Web\niubiGame
-    - C:\Web
-report:
-  # 报告模式
-  # [normal 详细叙述] [simple 简单概要]
-  mode: normal
-  # 间隔多少天汇报一次，默认一天报告一次
-  # 1=只含今天，2=今天和昨天
-  intervalDay: 1
-  # 输出模式
-  # file 输出文本文件
-  # print 打印到终端
-  out: file
-  # 报告语言 [chs|en]
-  lang: chs
-```
-
 ## Roadmap
 
 * 将工作区、Stage区纳入上报的工作范围
@@ -164,8 +157,6 @@ report:
 * 将会提交的工作范围简要报告给使用者
 * 应对加班等可能跨天的日报
 * tty模式配置向导
-* 支持本地大模型
-* 接入Openai
 
 ## Contributors
 

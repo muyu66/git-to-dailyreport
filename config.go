@@ -1,18 +1,9 @@
 package main
 
-import "github.com/spf13/viper"
-
-func getAiNameConf() string {
-	return viper.GetString("ai.name")
-}
-
-func getAiAkConf() string {
-	return viper.GetString("ai.ak")
-}
-
-func getAiModelConf() string {
-	return viper.GetString("ai.model")
-}
+import (
+	"github.com/spf13/viper"
+	"strconv"
+)
 
 func getGitUsernameConf() string {
 	return viper.GetString("git.username")
@@ -40,4 +31,20 @@ func getReportLangConf() string {
 
 func getReportFlowConf() bool {
 	return viper.GetBool("report.flow")
+}
+
+func getAiConf() AiConfig {
+	usedAi := getUseAiConf()
+	m := viper.GetStringMapString("ai." + usedAi)
+	maxInputTokens, _ := strconv.ParseUint(m["maxinputtokens"], 10, 32)
+	return AiConfig{
+		Model:          m["model"],
+		BaseUrl:        m["baseurl"],
+		ApiKey:         m["apikey"],
+		MaxInputTokens: uint32(maxInputTokens),
+	}
+}
+
+func getUseAiConf() string {
+	return viper.GetString("useAi")
 }

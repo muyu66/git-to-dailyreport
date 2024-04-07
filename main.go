@@ -22,6 +22,8 @@ var (
 	reportModeConf string
 	reportLangConf string
 	reportFlowConf bool
+	aiConf         AiConfig
+	useAiConf      string
 )
 
 func init() {
@@ -45,6 +47,8 @@ func init() {
 	reportModeConf = getReportModeConf()
 	reportLangConf = getReportLangConf()
 	reportFlowConf = getReportFlowConf()
+	aiConf = getAiConf()
+	useAiConf = getUseAiConf()
 }
 
 func loadCmdParams() {
@@ -63,7 +67,7 @@ func main() {
 
 	client := resty.New()
 
-	ai, err := AiFactory(getAiNameConf())
+	ai, err := AiFactory(useAiConf, aiConf)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -178,9 +182,8 @@ func makeAiReq(gitLogMap *sync.Map, maxLogLen int64, prompt string) string {
 	})
 
 	gitLogLarge := ""
-	aiModel := getAiModel(getAiModelConf())
 	// 大模型最多支持一次传输TOKEN数量
-	maxInputTokenCount := int(aiModel.MaxInputTokenCount*1000) - len(prompt) - (gitLogMapKeyCount * 15) - 10
+	maxInputTokenCount := int(aiConf.MaxInputTokens) - len(prompt) - (gitLogMapKeyCount * 15) - 10
 	// 每个GIT仓库可以分配到多少TOKEN的比例
 	ratio := float64(maxInputTokenCount) / float64(maxLogLen)
 	log.Debug("maxInputTokenCount=", maxInputTokenCount)

@@ -6,15 +6,26 @@ import (
 )
 
 type Ai interface {
+	before()
 	request(*resty.Client, []AiReqBodyMessage) AiReqBodyMessage
+	after()
 }
 
-func AiFactory(aiName string) (Ai, error) {
+type AiConfig struct {
+	Model          string
+	BaseUrl        string
+	ApiKey         string
+	MaxInputTokens uint32
+}
+
+func AiFactory(aiName string, aiConf AiConfig) (Ai, error) {
 	switch aiName {
-	case "aliyun":
-		return AliyunAi{}, nil
+	case "aliyun-dashscope":
+		return AliyunAi{Config: aiConf}, nil
 	case "ollama":
-		return OllamaAi{}, nil
+		return OllamaAi{Config: aiConf}, nil
+	case "openai":
+		return OpenAi{Config: aiConf}, nil
 	default:
 		return nil, errors.New("找不到合适的AI引擎")
 	}
